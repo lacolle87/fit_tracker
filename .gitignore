@@ -1,0 +1,26 @@
+# Local DuckDB data
+*.duckdb
+*.duckdb.wal
+*.duckdb.tmp
+*.test-backup
+
+# Python
+__pycache__/
+*.py[cod]
+*.pyd
+
+# Virtual environments
+.venv/
+venv/
+env/
+
+# Test and local tooling files
+.pytest_cache/
+.mypy_cache/
+.coverage
+
+# Editors and OS
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
