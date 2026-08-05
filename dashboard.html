@@ -124,8 +124,8 @@
         requestAnimationFrame(scan);
       } catch (error) { if (stream) stream.getTracks().forEach(track=>track.stop()); video.classList.add('hidden'); $('barcodeStatus').textContent='Не удалось включить камеру'; }
     }
-    function mealGroup(value) {
-      const savedType=String(value[7]||'').toLowerCase();
+    function mealGroup(meal) {
+      const savedType=String(meal.meal_type||'').toLowerCase();
       if (savedType==='breakfast') return 'Завтрак';
       if (savedType==='lunch') return 'Обед';
       if (savedType==='dinner') return 'Ужин';
@@ -136,8 +136,8 @@
       const groups = ['Завтрак', 'Обед', 'Ужин', 'Перекус', 'Не указано'].map(name => [name, []]);
       meals.forEach(meal => groups.find(group => group[0] === mealGroup(meal))[1].push(meal));
       return groups.map(([name, entries]) => {
-        const calories = entries.reduce((total, entry) => total + Number(entry[3] || 0), 0);
-        const rows = entries.map(x => `<tr class="border-b border-slate-100"><td class="px-2 py-3 text-slate-400">${new Date(x[0]).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'})}</td><td class="break-words px-2 py-3 font-medium">${x[1]}</td><td class="px-2 py-3 text-slate-400">${n(x[2])} г</td><td class="px-2 py-3">${n(x[3])}</td><td class="px-2 py-3 text-slate-400">${n(x[4])} / ${n(x[5])} / ${n(x[6])}</td></tr>`).join('');
+        const calories = entries.reduce((total, entry) => total + Number(entry.calories || 0), 0);
+        const rows = entries.map(meal => `<tr class="border-b border-slate-100"><td class="px-2 py-3 text-slate-400">${new Date(meal.eaten_at).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'})}</td><td class="break-words px-2 py-3 font-medium">${meal.name}</td><td class="px-2 py-3 text-slate-400">${n(meal.grams)} г</td><td class="px-2 py-3">${n(meal.calories)}</td><td class="px-2 py-3 text-slate-400">${n(meal.protein)} / ${n(meal.fat)} / ${n(meal.carbs)}</td></tr>`).join('');
         const empty = '<tr><td colspan="5" class="border-b border-slate-100 px-2 py-3 text-sm text-slate-400">Пока нет записей</td></tr>';
         return `<tr><td colspan="5" class="border-b border-slate-200 bg-slate-50 px-2 py-2 text-xs font-semibold uppercase tracking-wide text-slate-500"><span>${name}</span><span class="ml-2 font-normal normal-case text-slate-400">${n(calories)} ккал · ${pct(calories, calorieTarget)}% дневной цели</span></td></tr>${rows || empty}`;
       }).join('');

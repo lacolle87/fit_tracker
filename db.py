@@ -16,6 +16,7 @@ def connect():
         "UPDATE meals SET meal_type=note WHERE meal_type IS NULL "
         "AND note IN ('breakfast', 'lunch', 'dinner', 'snack')"
     )
+    conn.execute("UPDATE meals SET note=NULL WHERE note=meal_type")
     conn.execute("ALTER TABLE nutrition_targets ADD COLUMN IF NOT EXISTS valid_to DATE")
     conn.execute("ALTER TABLE body_measurements ADD COLUMN IF NOT EXISTS muscle_pct DOUBLE")
     measurement_columns = {
@@ -90,7 +91,7 @@ def log_dish(c, dish, servings, meal_type=None):
     c.execute(
         "INSERT INTO meals (id,eaten_at,food_id,grams,note,meal_type) VALUES (?,?,?,?,?,?)",
         [int(datetime.now().timestamp() * 1e6), datetime.now(), -dish[0], dish[2] * servings,
-         "dish", meal_type],
+         None, meal_type],
     )
 
 

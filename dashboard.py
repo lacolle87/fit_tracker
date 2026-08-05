@@ -35,6 +35,14 @@ def rows(connection, query_name, params):
     ).fetchall()]
 
 
+def meal_rows(connection, day):
+    columns = (
+        "eaten_at", "name", "grams", "calories", "protein", "fat", "carbs",
+        "meal_type",
+    )
+    return [dict(zip(columns, row)) for row in rows(connection, "meals", [day])]
+
+
 def payload(day):
     connection = db.connect()
     try:
@@ -46,7 +54,7 @@ def payload(day):
             "date": day.isoformat(),
             "targets": target,
             "totals": dict(zip(("calories", "protein", "fat", "carbs"), totals)),
-            "meals": rows(connection, "meals", [day]),
+            "meals": meal_rows(connection, day),
             "activity": rows(connection, "activity", [start, end]),
             "workouts": rows(connection, "workouts", [start, end]),
             "weights": rows(connection, "weights", [start, end]),
