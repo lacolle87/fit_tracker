@@ -133,7 +133,7 @@
     }
     async function load() { const day=$('day').value; const response=await fetch(`/api/dashboard?date=${day}`); const data=await response.json(); render(data); renderExtras(data); renderMacroDonut(data); const donut=$('macroRatio').firstElementChild; donut.className='relative h-[104px] w-[104px] shrink-0 rounded-full'; donut.firstElementChild.className='absolute inset-3 flex flex-col items-center justify-center rounded-full bg-white text-center'; const activity=data.activity.find(x=>x[0]===data.date)||[data.date,0,0]; $('summarySteps').textContent=Number(activity[1]).toLocaleString('ru-RU'); $('summaryWorkouts').textContent=data.workouts.length; }
     $('day').value=new Date().toISOString().slice(0,10); $('day').addEventListener('change',load); load();
-    window.addEventListener('pagehide',()=>navigator.sendBeacon('/api/close',''));
+    window.setInterval(() => fetch('/api/ping', {cache:'no-store'}).catch(() => {}), 10000);
   </script>
 </body>
 </html>

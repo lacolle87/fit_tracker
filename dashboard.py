@@ -1,6 +1,7 @@
 import json
 import re
 import threading
+import time
 import webbrowser
 from datetime import date, timedelta
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
@@ -57,16 +58,11 @@ def payload(day):
 
 class Handler(BaseHTTPRequestHandler):
     def do_POST(self):
-        parsed = urlparse(self.path)
-        if parsed.path == "/api/close":
-            self.send_response(204)
-            self.end_headers()
-            threading.Timer(0.25, self.server.shutdown).start()
-            return
         self.send_error(404)
 
     def do_GET(self):
         parsed = urlparse(self.path)
+        self.server.last_activity = time.monotonic()
         if parsed.path == "/":
             body = (ROOT / "dashboard.html").read_bytes()
             content_type = "text/html; charset=utf-8"
@@ -77,6 +73,10 @@ class Handler(BaseHTTPRequestHandler):
             day = parse_qs(parsed.query).get("date", [date.today().isoformat()])[0]
             body = json.dumps(payload(date.fromisoformat(day)), ensure_ascii=False).encode()
             content_type = "application/json; charset=utf-8"
+        elif parsed.path == "/api/ping":
+            self.send_response(204)
+            self.end_headers()
+            return
         else:
             self.send_error(404)
             return
@@ -90,9 +90,19 @@ class Handler(BaseHTTPRequestHandler):
         return
 
 
+def stop_when_idle(server, timeout_seconds=30):
+    while True:
+        time.sleep(5)
+        if time.monotonic() - server.last_activity >= timeout_seconds:
+            server.shutdown()
+            return
+
+
 def main():
     port = 8765
     server = ThreadingHTTPServer(("127.0.0.1", port), Handler)
+    server.last_activity = time.monotonic()
+    threading.Thread(target=stop_when_idle, args=(server,), daemon=True).start()
     url = f"http://127.0.0.1:{port}"
     print(f"Dashboard: {url}")
     threading.Timer(0.3, webbrowser.open, args=(url,)).start()
