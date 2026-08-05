@@ -130,7 +130,7 @@
       if (savedType==='lunch') return 'Обед';
       if (savedType==='dinner') return 'Ужин';
       if (savedType==='snack') return 'Перекус';
-      const hour = new Date(value).getHours();
+      const hour = new Date(value[0]).getHours();
       if (hour >= 5 && hour < 11) return 'Завтрак';
       if (hour >= 11 && hour < 16) return 'Обед';
       if (hour >= 16 && hour < 22) return 'Ужин';
