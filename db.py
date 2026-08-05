@@ -11,6 +11,11 @@ def connect():
     conn = duckdb.connect(str(DB_PATH))
     conn.execute(SCHEMA_PATH.read_text(encoding="utf-8"))
     conn.execute("ALTER TABLE foods ADD COLUMN IF NOT EXISTS barcode VARCHAR")
+    conn.execute("ALTER TABLE meals ADD COLUMN IF NOT EXISTS meal_type VARCHAR")
+    conn.execute(
+        "UPDATE meals SET meal_type=note WHERE meal_type IS NULL "
+        "AND note IN ('breakfast', 'lunch', 'dinner', 'snack')"
+    )
     conn.execute("ALTER TABLE nutrition_targets ADD COLUMN IF NOT EXISTS valid_to DATE")
     conn.execute("ALTER TABLE body_measurements ADD COLUMN IF NOT EXISTS muscle_pct DOUBLE")
     measurement_columns = {
@@ -74,12 +79,19 @@ def add_dish(c, a): c.execute("INSERT INTO dishes VALUES ((SELECT COALESCE(MAX(i
                               [a.name, a.grams, a.kcal, a.protein, a.fat, a.carbs, datetime.now()])
 
 
-def log_food(c, food, grams, note=None): c.execute("INSERT INTO meals VALUES (?,?,?,?,?)",
-                                                   [int(datetime.now().timestamp() * 1e6), datetime.now(), food[0], grams, note])
+def log_food(c, food, grams, note=None, meal_type=None):
+    c.execute(
+        "INSERT INTO meals (id,eaten_at,food_id,grams,note,meal_type) VALUES (?,?,?,?,?,?)",
+        [int(datetime.now().timestamp() * 1e6), datetime.now(), food[0], grams, note, meal_type],
+    )
 
 
-def log_dish(c, dish, servings): c.execute("INSERT INTO meals VALUES (?,?,?,?,?)", [
-    int(datetime.now().timestamp() * 1e6), datetime.now(), -dish[0], dish[2] * servings, "dish"])
+def log_dish(c, dish, servings, meal_type=None):
+    c.execute(
+        "INSERT INTO meals (id,eaten_at,food_id,grams,note,meal_type) VALUES (?,?,?,?,?,?)",
+        [int(datetime.now().timestamp() * 1e6), datetime.now(), -dish[0], dish[2] * servings,
+         "dish", meal_type],
+    )
 
 
 def add_supplement(c,

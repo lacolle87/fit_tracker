@@ -12,6 +12,7 @@ def build_parser():
     command = sub.add_parser("log")
     command.add_argument("items")
     command.add_argument("--note")
+    command.add_argument("--meal-type", choices=("breakfast", "lunch", "dinner", "snack"))
     command = sub.add_parser("today")
     command.add_argument("--date")
     sub.add_parser("profile")
@@ -31,6 +32,7 @@ def build_parser():
     command = sub.add_parser("log-dish")
     command.add_argument("name")
     command.add_argument("servings", type=float)
+    command.add_argument("--meal-type", choices=("breakfast", "lunch", "dinner", "snack"))
     command = sub.add_parser("add-supplement")
     command.add_argument("name")
     command.add_argument("amount", type=float, nargs="?")
@@ -117,10 +119,10 @@ def main():
         elif args.cmd == "log":
             for name, grams in items(args.items):
                 db.log_food(connection, db.find(connection, "foods", name),
-                            grams, args.note)
+                            grams, args.note, args.meal_type)
         elif args.cmd == "log-dish":
             db.log_dish(connection, db.find(connection, "dishes", args.name),
-                        args.servings)
+                        args.servings, args.meal_type)
         elif args.cmd == "add-supplement":
             db.add_supplement(connection, args)
         elif args.cmd == "log-supplement":
