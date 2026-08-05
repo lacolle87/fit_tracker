@@ -129,6 +129,23 @@ class DashboardContractTests(unittest.TestCase):
 
         self.assertEqual(name, "Яблоко тест")
 
+    def test_recipe_keeps_ingredients_and_calculates_totals(self):
+        connection = db.connect()
+        try:
+            recipe_id = db.add_recipe(connection, "тестовый рецепт", [(999, 100)])
+            recipe = connection.execute(
+                "SELECT name,final_grams FROM recipes WHERE id=?", [recipe_id]
+            ).fetchone()
+            totals = db.recipe_totals(connection, recipe_id)
+        finally:
+            connection.close()
+
+        self.assertEqual(recipe, ("Тестовый рецепт", None))
+        self.assertEqual(
+            totals,
+            {"raw_grams": 100, "calories": 100, "protein": 10, "fat": 5, "carbs": 20},
+        )
+
 
 if __name__ == "__main__":
     unittest.main()

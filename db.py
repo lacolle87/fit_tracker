@@ -89,6 +89,32 @@ def add_dish(c, a): c.execute("INSERT INTO dishes VALUES ((SELECT COALESCE(MAX(i
                               [display_name(a.name), a.grams, a.kcal, a.protein, a.fat, a.carbs, datetime.now()])
 
 
+def add_recipe(c, name, ingredients):
+    recipe_id = c.execute("SELECT COALESCE(MAX(id),0)+1 FROM recipes").fetchone()[0]
+    c.execute(
+        "INSERT INTO recipes (id,name,final_grams,created_at) VALUES (?,?,NULL,?)",
+        [recipe_id, display_name(name), datetime.now()],
+    )
+    c.executemany(
+        "INSERT INTO recipe_ingredients (recipe_id,food_id,grams) VALUES (?,?,?)",
+        [(recipe_id, food_id, grams) for food_id, grams in ingredients],
+    )
+    return recipe_id
+
+
+def recipe_totals(c, recipe_id):
+    totals = c.execute(
+        "SELECT COALESCE(SUM(i.grams),0), "
+        "COALESCE(SUM(f.kcal_100*i.grams/100),0), "
+        "COALESCE(SUM(f.protein_100*i.grams/100),0), "
+        "COALESCE(SUM(f.fat_100*i.grams/100),0), "
+        "COALESCE(SUM(f.carbs_100*i.grams/100),0) "
+        "FROM recipe_ingredients i JOIN foods f ON f.id=i.food_id WHERE i.recipe_id=?",
+        [recipe_id],
+    ).fetchone()
+    return dict(zip(("raw_grams", "calories", "protein", "fat", "carbs"), totals))
+
+
 def log_food(c, food, grams, note=None, meal_type=None):
     c.execute(
         "INSERT INTO meals (id,eaten_at,food_id,grams,note,meal_type) VALUES (?,?,?,?,?,?)",
