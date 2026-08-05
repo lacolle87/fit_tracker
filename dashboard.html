@@ -125,6 +125,11 @@
       } catch (error) { if (stream) stream.getTracks().forEach(track=>track.stop()); video.classList.add('hidden'); $('barcodeStatus').textContent='Не удалось включить камеру'; }
     }
     function mealGroup(value) {
+      const savedType=String(value[7]||'').toLowerCase();
+      if (savedType==='breakfast') return 'Завтрак';
+      if (savedType==='lunch') return 'Обед';
+      if (savedType==='dinner') return 'Ужин';
+      if (savedType==='snack') return 'Перекус';
       const hour = new Date(value).getHours();
       if (hour >= 5 && hour < 11) return 'Завтрак';
       if (hour >= 11 && hour < 16) return 'Обед';
