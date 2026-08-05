@@ -16,7 +16,7 @@
 <body class="min-h-screen bg-slate-100 text-slate-900">
   <main class="mx-auto max-w-7xl min-w-0 px-4 py-6 sm:px-6 lg:px-8">
     <header class="mb-6 flex flex-wrap items-end justify-between gap-4">
-      <div><p class="text-sm font-medium text-cyan-400">FIT TRACKER</p><h1 class="text-3xl font-semibold tracking-tight">Панель прогресса</h1></div>
+      <div class="flex items-center gap-3"><img src="/favicon.ico?v=4" alt="Fit Tracker" class="h-9 w-9 rounded-lg"><div><p class="text-sm font-medium text-cyan-400">FIT TRACKER</p><h1 class="text-3xl font-semibold tracking-tight">Панель прогресса</h1></div></div>
       <label class="text-sm text-slate-500">Дата<input id="day" type="date" class="ml-2 rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-900"></label>
     </header>
 
@@ -94,6 +94,7 @@
       $('weightChart').className='h-72 overflow-hidden';
       $('weightChart').innerHTML='';
       const visibleDates=labels.length<=3?labels:[labels[0],labels.at(-1)];
+      $('weightDates').className=`mt-1 flex px-10 text-xs text-slate-500 ${visibleDates.length===1?'justify-center':'justify-between'}`;
       $('weightDates').innerHTML=visibleDates.map(label=>`<span>${label}</span>`).join('');
       $('rateChart').className='h-80';
       $('rateChart').innerHTML='';
