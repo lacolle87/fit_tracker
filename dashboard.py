@@ -129,7 +129,7 @@ class Handler(BaseHTTPRequestHandler):
                         connection.execute(
                             "INSERT INTO foods (id,name,kcal_100,protein_100,fat_100,carbs_100,barcode) "
                             "VALUES (?,?,?,?,?,?,?)",
-                            [food_id, product["name"], product["kcal"], product["protein"],
+                            [food_id, db.display_name(product["name"]), product["kcal"], product["protein"],
                              product["fat"], product["carbs"], product["barcode"]],
                         )
                         product["id"] = food_id

@@ -7,6 +7,11 @@ SCHEMA_PATH = Path(__file__).with_name("schema.sql")
 SEED_PATH = Path(__file__).with_name("seed.sql")
 
 
+def display_name(value):
+    value = value.strip()
+    return value[:1].upper() + value[1:]
+
+
 def connect():
     conn = duckdb.connect(str(DB_PATH))
     conn.execute(SCHEMA_PATH.read_text(encoding="utf-8"))
@@ -76,12 +81,12 @@ def add_food(c, a):
     c.execute(
         "INSERT INTO foods (id,name,kcal_100,protein_100,fat_100,carbs_100,is_estimated) "
         "VALUES ((SELECT COALESCE(MAX(id),0)+1 FROM foods),?,?,?,?,?,?)",
-        [a.name, a.kcal, a.protein, a.fat, a.carbs, getattr(a, "estimated", False)],
+        [display_name(a.name), a.kcal, a.protein, a.fat, a.carbs, getattr(a, "estimated", False)],
     )
 
 
 def add_dish(c, a): c.execute("INSERT INTO dishes VALUES ((SELECT COALESCE(MAX(id),0)+1 FROM dishes),?,?,?,?,?,?,?)",
-                              [a.name, a.grams, a.kcal, a.protein, a.fat, a.carbs, datetime.now()])
+                              [display_name(a.name), a.grams, a.kcal, a.protein, a.fat, a.carbs, datetime.now()])
 
 
 def log_food(c, food, grams, note=None, meal_type=None):
@@ -101,7 +106,7 @@ def log_dish(c, dish, servings, meal_type=None):
 
 def add_supplement(c,
                    a): c.execute("INSERT INTO supplements VALUES ((SELECT COALESCE(MAX(id),0)+1 FROM supplements),?,?,?,?,?)",
-                                 [a.name,
+                                 [display_name(a.name),
                                   a.amount,
                                   a.unit,
                                   a.ingredients,

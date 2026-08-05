@@ -5,6 +5,7 @@ import unittest
 from datetime import date, datetime
 from http.server import ThreadingHTTPServer
 from pathlib import Path
+from types import SimpleNamespace
 from urllib.request import Request, urlopen
 
 import dashboard
@@ -109,6 +110,24 @@ class DashboardContractTests(unittest.TestCase):
             connection.close()
 
         self.assertEqual(food, ("Example", True))
+
+    def test_new_food_names_start_with_a_capital_letter(self):
+        connection = db.connect()
+        try:
+            db.add_food(
+                connection,
+                SimpleNamespace(
+                    name="  яблоко тест  ", kcal=89, protein=1.1, fat=0.3, carbs=22.8,
+                    estimated=False,
+                ),
+            )
+            name = connection.execute(
+                "SELECT name FROM foods WHERE lower(name)='яблоко тест'"
+            ).fetchone()[0]
+        finally:
+            connection.close()
+
+        self.assertEqual(name, "Яблоко тест")
 
 
 if __name__ == "__main__":
