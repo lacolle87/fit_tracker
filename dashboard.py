@@ -78,6 +78,9 @@ class Handler(BaseHTTPRequestHandler):
         if parsed.path == "/":
             body = (ROOT / "dashboard.html").read_bytes()
             content_type = "text/html; charset=utf-8"
+        elif parsed.path == "/fit_tracker.ico":
+            body = (ROOT / "fit_tracker.ico").read_bytes()
+            content_type = "image/x-icon"
         elif parsed.path == "/api/dashboard":
             day = parse_qs(parsed.query).get("date", [date.today().isoformat()])[0]
             client = parse_qs(parsed.query).get("client", [""])[0]
