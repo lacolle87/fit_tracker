@@ -43,7 +43,7 @@ def meal_rows(connection, day):
     return [dict(zip(columns, row)) for row in rows(connection, "meals", [day])]
 
 
-def payload(day):
+def payload(day, named_meals=False):
     connection = db.connect()
     try:
         target = db.targets(connection, day)
@@ -54,7 +54,7 @@ def payload(day):
             "date": day.isoformat(),
             "targets": target,
             "totals": dict(zip(("calories", "protein", "fat", "carbs"), totals)),
-            "meals": meal_rows(connection, day),
+            "meals": meal_rows(connection, day) if named_meals else rows(connection, "meals", [day]),
             "activity": rows(connection, "activity", [start, end]),
             "workouts": rows(connection, "workouts", [start, end]),
             "weights": rows(connection, "weights", [start, end]),
@@ -84,7 +84,10 @@ class Handler(BaseHTTPRequestHandler):
             content_type = "image/x-icon"
         elif parsed.path == "/api/dashboard":
             day = parse_qs(parsed.query).get("date", [date.today().isoformat()])[0]
-            body = json.dumps(payload(date.fromisoformat(day)), ensure_ascii=False).encode()
+            named_meals = parse_qs(parsed.query).get("format", [""])[0] == "objects"
+            body = json.dumps(
+                payload(date.fromisoformat(day), named_meals), ensure_ascii=False
+            ).encode()
             content_type = "application/json; charset=utf-8"
         elif parsed.path == "/api/barcode":
             code = parse_qs(parsed.query).get("code", [""])[0]
