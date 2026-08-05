@@ -11,6 +11,10 @@ def connect():
     conn = duckdb.connect(str(DB_PATH))
     conn.execute(SCHEMA_PATH.read_text(encoding="utf-8"))
     conn.execute("ALTER TABLE foods ADD COLUMN IF NOT EXISTS barcode VARCHAR")
+    conn.execute("ALTER TABLE foods ADD COLUMN IF NOT EXISTS is_estimated BOOLEAN")
+    conn.execute("UPDATE foods SET is_estimated=FALSE WHERE is_estimated IS NULL")
+    conn.execute("UPDATE foods SET is_estimated=TRUE WHERE name LIKE '% (оценка)'")
+    conn.execute("UPDATE foods SET name=REPLACE(name, ' (оценка)', '') WHERE name LIKE '% (оценка)'")
     conn.execute("ALTER TABLE meals ADD COLUMN IF NOT EXISTS meal_type VARCHAR")
     conn.execute(
         "UPDATE meals SET meal_type=note WHERE meal_type IS NULL "
@@ -70,9 +74,9 @@ def find(c, table, name):
 
 def add_food(c, a):
     c.execute(
-        "INSERT INTO foods (id,name,kcal_100,protein_100,fat_100,carbs_100) "
-        "VALUES ((SELECT COALESCE(MAX(id),0)+1 FROM foods),?,?,?,?,?)",
-        [a.name, a.kcal, a.protein, a.fat, a.carbs],
+        "INSERT INTO foods (id,name,kcal_100,protein_100,fat_100,carbs_100,is_estimated) "
+        "VALUES ((SELECT COALESCE(MAX(id),0)+1 FROM foods),?,?,?,?,?,?)",
+        [a.name, a.kcal, a.protein, a.fat, a.carbs, getattr(a, "estimated", False)],
     )
 
 

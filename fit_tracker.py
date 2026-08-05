@@ -22,6 +22,7 @@ def build_parser():
     command.add_argument("protein", type=float)
     command.add_argument("fat", type=float)
     command.add_argument("carbs", type=float)
+    command.add_argument("--estimated", action="store_true")
     command = sub.add_parser("add-dish")
     command.add_argument("name")
     command.add_argument("grams", type=float)

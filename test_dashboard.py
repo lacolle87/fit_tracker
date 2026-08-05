@@ -91,6 +91,25 @@ class DashboardContractTests(unittest.TestCase):
         self.assertEqual(len(remaining), 1)
         self.assertEqual(remaining[0]["meal_type"], "snack")
 
+    def test_estimated_foods_keep_clean_display_names(self):
+        connection = db.connect()
+        try:
+            connection.execute(
+                "INSERT INTO foods (id,name,kcal_100,protein_100,fat_100,carbs_100) "
+                "VALUES (1000,'Example (оценка)',100,10,5,20)"
+            )
+        finally:
+            connection.close()
+        connection = db.connect()
+        try:
+            food = connection.execute(
+                "SELECT name,is_estimated FROM foods WHERE id=1000"
+            ).fetchone()
+        finally:
+            connection.close()
+
+        self.assertEqual(food, ("Example", True))
+
 
 if __name__ == "__main__":
     unittest.main()
