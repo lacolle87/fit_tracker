@@ -15,7 +15,8 @@ SELECT m.eaten_at, COALESCE(f.name,d.name), m.grams,
        CASE WHEN m.food_id > 0 THEN f.protein_100*m.grams/100 ELSE d.total_protein*m.grams/d.total_grams END,
        CASE WHEN m.food_id > 0 THEN f.fat_100*m.grams/100 ELSE d.total_fat*m.grams/d.total_grams END,
        CASE WHEN m.food_id > 0 THEN f.carbs_100*m.grams/100 ELSE d.total_carbs*m.grams/d.total_grams END,
-       m.meal_type
+       m.meal_type,
+       m.id
 FROM meals m LEFT JOIN foods f ON f.id=m.food_id LEFT JOIN dishes d ON d.id=-m.food_id
 WHERE CAST(m.eaten_at AS DATE)=? ORDER BY m.eaten_at
 

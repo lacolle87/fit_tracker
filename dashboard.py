@@ -38,7 +38,7 @@ def rows(connection, query_name, params):
 def meal_rows(connection, day):
     columns = (
         "eaten_at", "name", "grams", "calories", "protein", "fat", "carbs",
-        "meal_type",
+        "meal_type", "id",
     )
     return [dict(zip(columns, row)) for row in rows(connection, "meals", [day])]
 
@@ -71,6 +71,28 @@ class Handler(BaseHTTPRequestHandler):
             self.send_response(204)
             self.end_headers()
             threading.Timer(0.25, self.server.shutdown).start()
+            return
+        if parsed.path == "/api/meals":
+            try:
+                meal_id = int(parse_qs(parsed.query).get("id", [""])[0])
+                connection = db.connect()
+                try:
+                    found = connection.execute(
+                        "SELECT 1 FROM meals WHERE id=?", [meal_id]
+                    ).fetchone()
+                    if found:
+                        connection.execute("DELETE FROM meals WHERE id=?", [meal_id])
+                finally:
+                    connection.close()
+                body = json.dumps({"ok": bool(found)}).encode()
+                self.send_response(200)
+            except ValueError:
+                body = json.dumps({"ok": False, "error": "Invalid meal id"}).encode()
+                self.send_response(400)
+            self.send_header("Content-Type", "application/json; charset=utf-8")
+            self.send_header("Cache-Control", "no-store")
+            self.end_headers()
+            self.wfile.write(body)
             return
         self.send_error(404)
 

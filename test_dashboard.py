@@ -5,7 +5,7 @@ import unittest
 from datetime import date, datetime
 from http.server import ThreadingHTTPServer
 from pathlib import Path
-from urllib.request import urlopen
+from urllib.request import Request, urlopen
 
 import dashboard
 import db
@@ -72,6 +72,24 @@ class DashboardContractTests(unittest.TestCase):
         self.assertIn("meal.meal_type", html)
         self.assertIn("meal.eaten_at", html)
         self.assertIn("meal.name", html)
+        self.assertIn('id="refresh"', html)
+        self.assertIn("data-delete-meal", html)
+        self.assertIn("Удалить эту запись из дневника?", html)
+
+    def test_delete_meal_removes_only_selected_record(self):
+        data = self.dashboard_response("date=2026-08-05&format=objects")
+        meal_id = data["meals"][0]["id"]
+        request = Request(
+            f"http://127.0.0.1:{self.server.server_port}/api/meals?id={meal_id}",
+            method="POST",
+        )
+        with urlopen(request) as response:
+            result = json.load(response)
+
+        remaining = self.dashboard_response("date=2026-08-05&format=objects")["meals"]
+        self.assertTrue(result["ok"])
+        self.assertEqual(len(remaining), 1)
+        self.assertEqual(remaining[0]["meal_type"], "snack")
 
 
 if __name__ == "__main__":
