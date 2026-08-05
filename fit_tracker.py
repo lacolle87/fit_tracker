@@ -55,11 +55,25 @@ def build_parser():
     command.add_argument("--calories", type=float)
     command.add_argument("--datetime")
     command.add_argument("--note")
+    command = sub.add_parser("log-measurement")
+    command.add_argument("weight", type=float)
+    command.add_argument("fat", type=float)
+    command.add_argument("muscle", type=float)
+    command.add_argument("--date")
+    command.add_argument("--note")
+    command = sub.add_parser("set-calories")
+    command.add_argument("calories", type=float)
+    command = sub.add_parser("set-targets")
+    command.add_argument("calories", type=float)
+    command.add_argument("protein", type=float)
+    command.add_argument("fat", type=float)
+    command.add_argument("carbs", type=float)
+    command.add_argument("--date")
     return parser
 
 
 def show_today(connection, selected_date):
-    targets = db.targets(connection)
+    targets = db.targets(connection, selected_date)
     query = """
         SELECT
             COALESCE(SUM(CASE WHEN m.food_id > 0
@@ -115,6 +129,12 @@ def main():
             db.log_steps(connection, args)
         elif args.cmd == "log-workout":
             db.log_workout(connection, args)
+        elif args.cmd == "log-measurement":
+            db.log_measurement(connection, args)
+        elif args.cmd == "set-calories":
+            db.update_calorie_target(connection, args.calories)
+        elif args.cmd == "set-targets":
+            db.update_full_targets(connection, args)
         elif args.cmd == "today":
             selected_date = date.fromisoformat(args.date) if args.date else date.today()
             show_today(connection, selected_date)

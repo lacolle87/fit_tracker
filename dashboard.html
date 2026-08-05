@@ -1,0 +1,134 @@
+<!doctype html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Fit Tracker Dashboard</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdn.jsdelivr.net/npm/apexcharts"></script>
+  <style>
+    html, body { max-width: 100%; overflow-x: clip !important; }
+    main, main > section, main > article { min-width: 0; max-width: 100%; }
+  </style>
+</head>
+<body class="min-h-screen bg-slate-100 text-slate-900">
+  <main class="mx-auto max-w-7xl min-w-0 px-4 py-6 sm:px-6 lg:px-8">
+    <header class="mb-6 flex flex-wrap items-end justify-between gap-4">
+      <div><p class="text-sm font-medium text-cyan-400">FIT TRACKER</p><h1 class="text-3xl font-semibold tracking-tight">Панель прогресса</h1></div>
+      <label class="text-sm text-slate-500">Дата<input id="day" type="date" class="ml-2 rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-900"></label>
+    </header>
+
+    <section class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><p class="text-sm text-slate-500">Калории</p><p id="calories" class="mt-2 text-3xl font-semibold">—</p><p id="caloriesLimit" class="mt-1 text-sm text-slate-500">—</p><div class="hidden"><div id="caloriesBar" style="width:0%"></div></div></article>
+      <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><p class="text-sm text-slate-500">Белок</p><p id="protein" class="mt-2 text-3xl font-semibold">—</p><p id="proteinTarget" class="mt-1 text-sm text-slate-500">—</p></article>
+      <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><p class="text-sm text-slate-500">Жиры</p><p id="fat" class="mt-2 text-3xl font-semibold">—</p><p id="fatTarget" class="mt-1 text-sm text-slate-500">—</p></article>
+      <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><p class="text-sm text-slate-500">Углеводы</p><p id="carbs" class="mt-2 text-3xl font-semibold">—</p><p id="carbsTarget" class="mt-1 text-sm text-slate-500">—</p></article>
+    </section>
+
+    <section class="mt-6 grid gap-5 lg:grid-cols-3">
+      <article class="overflow-hidden rounded-2xl border border-slate-200 bg-white p-5 shadow-sm lg:col-span-2"><div class="mb-4 flex items-center justify-between"><h2 class="font-semibold">БЖУ за день</h2><span class="text-xs text-slate-500">процент от цели</span></div><div id="macroChart" class="h-[330px]"></div></article>
+      <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><h2 class="mb-4 font-semibold">Активность и состав тела</h2><div class="grid grid-cols-2 gap-4"><div><p class="text-sm text-slate-500">Шаги</p><p id="steps" class="text-3xl font-semibold">—</p></div><div><p class="text-sm text-slate-500">Тренировки за 30 дней</p><p id="workouts" class="text-3xl font-semibold">—</p></div><div><p class="text-sm text-slate-500">Жир</p><p id="bodyFat" class="text-2xl font-semibold">—</p></div><div><p class="text-sm text-slate-500">Мышцы</p><p id="muscle" class="text-2xl font-semibold">—</p></div></div></article>
+    </section>
+
+    <section class="mt-6 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><div class="mb-4 flex flex-wrap items-center justify-between gap-2"><h2 class="font-semibold">Приёмы пищи за день</h2><span id="mealCount" class="text-sm text-slate-500">—</span></div><div class="min-w-0"><table class="w-full table-fixed text-left text-sm"><thead class="border-b border-slate-200 text-slate-500"><tr><th class="w-20 px-2 py-3">Время</th><th class="px-2 py-3">Что съедено</th><th class="w-20 px-2 py-3">Масса</th><th class="w-20 px-2 py-3">Ккал</th><th class="w-28 px-2 py-3">Б / Ж / У</th></tr></thead><tbody id="meals"></tbody></table></div></section>
+
+    <section class="mt-6 grid gap-5 lg:grid-cols-2"><article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><h2 class="mb-4 font-semibold">Вес и цель 82 кг</h2><div id="weightChart" class="h-80"></div></article><article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><h2 class="mb-4 font-semibold">Скорость снижения</h2><p class="mb-3 text-xs text-slate-500">Изменение веса по 7-дневному тренду, кг/неделю</p><div id="rateChart" class="h-80"></div></article></section>
+    <p class="mt-6 text-center text-xs text-slate-500">Локальные данные из DuckDB · обновляется при смене даты</p>
+  </main>
+    <section id="insights" class="mt-6 grid gap-5 lg:grid-cols-3">
+      <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm lg:col-span-2">
+        <div class="flex items-center justify-between"><h2 class="font-semibold">Соотношение целей БЖУ</h2><span class="text-xs text-slate-500">в процентах от калорий</span></div>
+        <p id="macroRatio" class="mt-4 text-2xl font-semibold text-slate-800">—</p>
+        <p class="mt-2 text-sm text-slate-500">Граммы и процент выполнения цели отображаются в карточках выше.</p>
+      </article>
+      <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><h2 class="font-semibold">Контрольный замер</h2><p id="measurementDate" class="mt-2 text-xs text-slate-500">—</p><div class="mt-4 grid grid-cols-3 gap-3"><div><p class="text-xs text-slate-500">Вес</p><p id="measurementWeight" class="mt-1 text-xl font-semibold">—</p></div><div><p class="text-xs text-slate-500">Жир</p><p id="measurementFat" class="mt-1 text-xl font-semibold">—</p></div><div><p class="text-xs text-slate-500">Мышцы</p><p id="measurementMuscle" class="mt-1 text-xl font-semibold">—</p></div></div></article>
+    </section>
+  <script>
+    const charts = {};
+    const $ = id => document.getElementById(id);
+    const clientId = crypto.randomUUID();
+    const n = (value, digits = 0) => Number(value || 0).toFixed(digits);
+    const pct = (value, target) => target ? Math.round(Number(value || 0) / target * 100) : 0;
+    const insights = document.getElementById('insights');
+    const mainSections = document.querySelectorAll('main > section');
+    mainSections[1].lastElementChild.classList.add('hidden');
+    insights.lastElementChild.insertAdjacentHTML('beforeend', '<div class="mt-5 border-t border-slate-200 pt-4"><p class="text-sm font-semibold text-slate-700">\u0410\u043a\u0442\u0438\u0432\u043d\u043e\u0441\u0442\u044c</p><div class="mt-3 grid grid-cols-2 gap-3"><div><p class="text-xs text-slate-500">\u0428\u0430\u0433\u0438</p><p id="summarySteps" class="mt-1 text-xl font-semibold">—</p></div><div><p class="text-xs text-slate-500">\u0422\u0440\u0435\u043d\u0438\u0440\u043e\u0432\u043a\u0438 \u0437\u0430 30 \u0434\u043d\u0435\u0439</p><p id="summaryWorkouts" class="mt-1 text-xl font-semibold">—</p></div></div></div>');
+    document.querySelector('main').insertBefore(insights, mainSections[0]);
+    document.querySelector('main').insertBefore(mainSections[0], insights);
+    document.querySelector('main').insertBefore(mainSections[2], mainSections[1]);
+    const topCards = mainSections[0];
+    const ratioCard = insights.firstElementChild;
+    topCards.className = 'grid gap-4 lg:grid-cols-2';
+    ratioCard.className = 'min-h-[180px] rounded-2xl border border-slate-200 bg-white p-4 shadow-sm';
+    ratioCard.lastElementChild.classList.add('hidden');
+    topCards.append(ratioCard);
+    const summaryCard = document.createElement('article');
+    summaryCard.className = 'grid min-h-[180px] grid-cols-2 gap-x-6 gap-y-4 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm sm:grid-cols-4';
+    const dailyCards = [...topCards.children].filter(card => card !== ratioCard);
+    topCards.prepend(summaryCard);
+    dailyCards.forEach(card => { card.className = 'min-w-0'; summaryCard.append(card); });
+    insights.className = 'mt-6';
+    insights.firstElementChild.classList.add('max-w-xl');
+    const metricsSection = mainSections[1];
+    metricsSection.append(insights.firstElementChild);
+    insights.remove();
+    const chartDefaults = {chart:{fontFamily:'Inter, ui-sans-serif, system-ui',toolbar:{show:false},animations:{enabled:true}},theme:{mode:'light'},grid:{borderColor:'#e2e8f0',strokeDashArray:4},stroke:{curve:'smooth',width:3},dataLabels:{enabled:false},legend:{position:'bottom',fontSize:'12px',labels:{colors:'#64748b'}},xaxis:{labels:{style:{colors:'#64748b'}},axisBorder:{show:false},axisTicks:{show:false}},yaxis:{labels:{style:{colors:'#64748b'}}},tooltip:{theme:'light'}};
+    function draw(id, config) { if (charts[id]) charts[id].destroy(); charts[id] = new ApexCharts($(id), config); charts[id].render(); }
+    function dateLabel(value) { return new Date(value).toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit'}); }
+    function render(data) {
+      const t=data.totals, g=data.targets; $('calories').textContent=`${n(t.calories)} ккал`; $('caloriesLimit').textContent=`из ${n(g.calories)} ккал`; $('caloriesBar').style.width=`${Math.min(100,t.calories/g.calories*100)}%`;
+      $('protein').textContent=`${n(t.protein)} г`; $('proteinTarget').textContent=`цель ${n(g.protein)} г · ${pct(t.protein,g.protein)}%`; $('fat').textContent=`${n(t.fat)} г`; $('fatTarget').textContent=`цель ${n(g.fat)} г · ${pct(t.fat,g.fat)}%`; $('carbs').textContent=`${n(t.carbs)} г`; $('carbsTarget').textContent=`цель ${n(g.carbs)} г · ${pct(t.carbs,g.carbs)}%`;
+      const activity=data.activity.find(x=>x[0]===data.date)||[data.date,0,0]; const composition=data.body_measurements.at(-1)||[data.date,0,null,null]; $('steps').textContent=Number(activity[1]).toLocaleString('ru-RU'); $('workouts').textContent=data.workouts.length; $('bodyFat').textContent=composition[2]===null?'—':`${n(composition[2],1)}%`; $('muscle').textContent=composition[3]===null?'—':`${n(composition[3],1)}%`;
+      $('mealCount').textContent=`${data.meals.length} записей`; $('meals').innerHTML=renderMeals(data.meals, g.calories);
+      draw('macroChart',{...chartDefaults,chart:{...chartDefaults.chart,type:'bar',height:'100%',stacked:false},colors:['#0891b2','#cbd5e1'],series:[{name:'Факт',data:[pct(t.protein,g.protein),pct(t.fat,g.fat),pct(t.carbs,g.carbs)]},{name:'Цель',data:[100,100,100]}],xaxis:{...chartDefaults.xaxis,categories:[`Белок · ${n(t.protein)} г`,`Жиры · ${n(t.fat)} г`,`Углеводы · ${n(t.carbs)} г`],max:100,labels:{...chartDefaults.xaxis.labels,formatter:v=>`${v}%`}},plotOptions:{bar:{horizontal:true,borderRadius:6,barHeight:'42%'}},tooltip:{...chartDefaults.tooltip,y:{formatter:v=>`${n(v)}%`}}});
+      const weights=data.weights, labels=weights.map(x=>dateLabel(x[0])), values=weights.map(x=>x[1]);
+      if (weights.length < 2) {
+        $('weightChart').className='flex h-40 items-center justify-center rounded-xl bg-slate-50 text-sm text-slate-400';
+        $('rateChart').className='flex h-40 items-center justify-center rounded-xl bg-slate-50 text-sm text-slate-400';
+        $('weightChart').innerHTML='<div class="flex h-full items-center justify-center rounded-xl bg-slate-50 text-sm text-slate-400">Добавь первые измерения веса</div>';
+        $('rateChart').innerHTML='<div class="flex h-full items-center justify-center rounded-xl bg-slate-50 text-sm text-slate-400">Скорость появится после накопления данных</div>';
+        return;
+      }
+      draw('weightChart',{...chartDefaults,chart:{...chartDefaults.chart,type:'area',height:'100%'},colors:['#0891b2','#8b5cf6'],series:[{name:'Факт',data:values},{name:'Цель 82 кг',data:labels.map(()=>82)}],xaxis:{...chartDefaults.xaxis,categories:labels},fill:{type:'gradient',gradient:{opacityFrom:.28,opacityTo:.03}},yaxis:{...chartDefaults.yaxis,title:{text:'кг'}},stroke:{...chartDefaults.stroke,width:[3,2],dashArray:[0,7]}});
+      const rates=values.map((v,i)=>i<7?null:(v-values[i-7])*7);
+      if (rates.every(v=>v===null)) { $('rateChart').innerHTML='<div class="flex h-full items-center justify-center rounded-xl bg-slate-50 text-sm text-slate-400">Нужно минимум 8 измерений веса</div>'; return; }
+      draw('rateChart',{...chartDefaults,chart:{...chartDefaults.chart,type:'area',height:'100%'},colors:['#10b981','#f59e0b'],series:[{name:'Факт',data:rates},{name:'Цель −1.25',data:labels.map(()=>-1.25)}],xaxis:{...chartDefaults.xaxis,categories:labels},fill:{type:'gradient',gradient:{opacityFrom:.28,opacityTo:.03}},yaxis:{...chartDefaults.yaxis,title:{text:'кг/неделю'}},stroke:{...chartDefaults.stroke,width:[3,2],dashArray:[0,7]}});
+    }
+    function mealGroup(value) {
+      const hour = new Date(value).getHours();
+      if (hour >= 5 && hour < 11) return 'Завтрак';
+      if (hour >= 11 && hour < 16) return 'Обед';
+      if (hour >= 16 && hour < 22) return 'Ужин';
+      return 'Перекус';
+    }
+    function renderMeals(meals, calorieTarget) {
+      const groups = ['Завтрак', 'Обед', 'Ужин', 'Перекус'].map(name => [name, []]);
+      meals.forEach(meal => groups.find(group => group[0] === mealGroup(meal[0]))[1].push(meal));
+      return groups.map(([name, entries]) => {
+        const calories = entries.reduce((total, entry) => total + Number(entry[3] || 0), 0);
+        const rows = entries.map(x => `<tr class="border-b border-slate-100"><td class="px-2 py-3 text-slate-400">${new Date(x[0]).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'})}</td><td class="break-words px-2 py-3 font-medium">${x[1]}</td><td class="px-2 py-3 text-slate-400">${n(x[2])} г</td><td class="px-2 py-3">${n(x[3])}</td><td class="px-2 py-3 text-slate-400">${n(x[4])} / ${n(x[5])} / ${n(x[6])}</td></tr>`).join('');
+        const empty = '<tr><td colspan="5" class="border-b border-slate-100 px-2 py-3 text-sm text-slate-400">Пока нет записей</td></tr>';
+        return `<tr><td colspan="5" class="border-b border-slate-200 bg-slate-50 px-2 py-2 text-xs font-semibold uppercase tracking-wide text-slate-500"><span>${name}</span><span class="ml-2 font-normal normal-case text-slate-400">${n(calories)} ккал · ${pct(calories, calorieTarget)}% дневной цели</span></td></tr>${rows || empty}`;
+      }).join('');
+    }
+    function renderExtras(data) { const t=data.targets, values=[t.protein*4,t.fat*9,t.carbs*4], total=values.reduce((a,b)=>a+b,0); $('macroRatio').textContent=`Белок ${pct(values[0],total)}% · Жиры ${pct(values[1],total)}% · Углеводы ${pct(values[2],total)}%`; const m=data.body_measurements.at(-1); if (!m) return; $('measurementDate').textContent=`Последний замер: ${dateLabel(m[0])}`; $('measurementWeight').textContent=m[1]===null?'—':`${n(m[1],1)} кг`; $('measurementFat').textContent=m[2]===null?'—':`${n(m[2],1)}%`; $('measurementMuscle').textContent=m[3]===null?'—':`${n(m[3],1)}%`; }
+    function renderMacroDonut(data) {
+      const t=data.targets, grams=[t.protein,t.fat,t.carbs], kcal=[t.protein*4,t.fat*9,t.carbs*4], total=kcal.reduce((a,b)=>a+b,0);
+      const ratio=$('macroRatio');
+      if (!ratio.dataset.ready) { ratio.outerHTML='<div id="macroRatio" class="mt-3 grid items-center gap-3 sm:grid-cols-[112px_1fr]"></div>'; }
+      const ratioBox=$('macroRatio');
+      if (!ratioBox.dataset.ready) { ratioBox.dataset.ready='1'; ratioBox.innerHTML='<div id="macroDonut" class="h-24"></div><div id="macroValues" class="space-y-1"></div>'; }
+      $('macroValues').innerHTML=[['Белок','#0891b2',grams[0],kcal[0]],['Жиры','#8b5cf6',grams[1],kcal[1]],['Углеводы','#10b981',grams[2],kcal[2]]].map(x=>`<div class="flex items-center justify-between gap-4"><div class="flex items-center gap-2"><span class="h-3 w-3 rounded-full" style="background:${x[1]}"></span><span class="text-sm text-slate-600">${x[0]}</span></div><span class="font-semibold">${n(x[2])} г <span class="font-normal text-slate-400">· ${pct(x[3],total)}%</span></span></div>`).join('');
+      draw('macroDonut',{...chartDefaults,chart:{...chartDefaults.chart,type:'donut',height:'100%'},labels:['Белок','Жиры','Углеводы'],series:kcal,colors:['#0891b2','#8b5cf6','#10b981'],legend:{show:false},dataLabels:{enabled:true,formatter:v=>`${Math.round(v)}%`,style:{fontSize:'11px',fontWeight:600}},plotOptions:{pie:{donut:{size:'68%',labels:{show:true,total:{show:true,label:'цель',formatter:()=>`${n(total)} ккал`},value:{formatter:v=>`${pct(v,total)}%`}}}}},tooltip:{...chartDefaults.tooltip,y:{formatter:v=>`${n(v)} ккал`}}});
+    }
+    function renderMacroDonut(data) {
+      const t=data.targets, grams=[t.protein,t.fat,t.carbs], kcal=[t.protein*4,t.fat*9,t.carbs*4], total=kcal.reduce((a,b)=>a+b,0);
+      const parts=kcal.map(value=>pct(value,total));
+      $('macroRatio').outerHTML=`<div id="macroRatio" class="mt-3 flex flex-wrap items-center gap-5"><div class="relative h-28 w-28 shrink-0 rounded-full" style="background:conic-gradient(#0891b2 0 ${parts[0]}%,#8b5cf6 ${parts[0]}% ${parts[0]+parts[1]}%,#10b981 ${parts[0]+parts[1]}% 100%)"><div class="absolute inset-3 flex flex-col items-center justify-center rounded-full bg-white text-center"><span class="text-xs text-slate-500">\u0446\u0435\u043b\u044c</span><span class="text-sm font-semibold">${n(total)} \u043a\u043a\u0430\u043b</span></div></div><div class="min-w-[220px] space-y-1.5">${[['\u0411\u0435\u043b\u043e\u043a','#0891b2',grams[0],parts[0]],['\u0416\u0438\u0440\u044b','#8b5cf6',grams[1],parts[1]],['\u0423\u0433\u043b\u0435\u0432\u043e\u0434\u044b','#10b981',grams[2],parts[2]]].map(x=>`<div class="flex items-center justify-between gap-5 text-sm"><span class="flex items-center gap-2 text-slate-600"><i class="h-2.5 w-2.5 rounded-full" style="background:${x[1]}"></i>${x[0]}</span><strong>${n(x[2])} \u0433 <span class="font-normal text-slate-400">· ${x[3]}%</span></strong></div>`).join('')}</div></div>`;
+    }
+    async function load() { const day=$('day').value; const response=await fetch(`/api/dashboard?date=${day}&client=${clientId}`); const data=await response.json(); render(data); renderExtras(data); renderMacroDonut(data); const donut=$('macroRatio').firstElementChild; donut.className='relative h-[104px] w-[104px] shrink-0 rounded-full'; donut.firstElementChild.className='absolute inset-3 flex flex-col items-center justify-center rounded-full bg-white text-center'; const activity=data.activity.find(x=>x[0]===data.date)||[data.date,0,0]; $('summarySteps').textContent=Number(activity[1]).toLocaleString('ru-RU'); $('summaryWorkouts').textContent=data.workouts.length; }
+    $('day').value=new Date().toISOString().slice(0,10); $('day').addEventListener('change',load); load();
+    window.addEventListener('pagehide',()=>navigator.sendBeacon(`/api/close?client=${clientId}`,''));
+  </script>
+</body>
+</html>
