@@ -59,17 +59,9 @@ class Handler(BaseHTTPRequestHandler):
     def do_POST(self):
         parsed = urlparse(self.path)
         if parsed.path == "/api/close":
-            client = parse_qs(parsed.query).get("client", [""])[0]
-            if client not in self.server.clients:
-                self.send_response(204)
-                self.end_headers()
-                return
-            self.server.clients.discard(client)
             self.send_response(204)
             self.end_headers()
-            if not self.server.clients:
-                self.server.shutdown_timer = threading.Timer(0.25, self.server.shutdown)
-                self.server.shutdown_timer.start()
+            threading.Timer(0.25, self.server.shutdown).start()
             return
         self.send_error(404)
 
@@ -83,12 +75,6 @@ class Handler(BaseHTTPRequestHandler):
             content_type = "image/x-icon"
         elif parsed.path == "/api/dashboard":
             day = parse_qs(parsed.query).get("date", [date.today().isoformat()])[0]
-            client = parse_qs(parsed.query).get("client", [""])[0]
-            if client:
-                if self.server.shutdown_timer:
-                    self.server.shutdown_timer.cancel()
-                    self.server.shutdown_timer = None
-                self.server.clients.add(client)
             body = json.dumps(payload(date.fromisoformat(day)), ensure_ascii=False).encode()
             content_type = "application/json; charset=utf-8"
         else:
@@ -107,8 +93,6 @@ class Handler(BaseHTTPRequestHandler):
 def main():
     port = 8765
     server = ThreadingHTTPServer(("127.0.0.1", port), Handler)
-    server.clients = set()
-    server.shutdown_timer = None
     url = f"http://127.0.0.1:{port}"
     print(f"Dashboard: {url}")
     threading.Timer(0.3, webbrowser.open, args=(url,)).start()
