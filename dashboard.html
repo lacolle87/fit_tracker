@@ -82,13 +82,17 @@
       $('mealCount').textContent=`${data.meals.length} записей`; $('meals').innerHTML=renderMeals(data.meals, g.calories);
       draw('macroChart',{...chartDefaults,chart:{...chartDefaults.chart,type:'bar',height:'100%',stacked:false},colors:['#0891b2','#cbd5e1'],series:[{name:'Факт',data:[pct(t.protein,g.protein),pct(t.fat,g.fat),pct(t.carbs,g.carbs)]},{name:'Цель',data:[100,100,100]}],xaxis:{...chartDefaults.xaxis,categories:[`Белок · ${n(t.protein)} г`,`Жиры · ${n(t.fat)} г`,`Углеводы · ${n(t.carbs)} г`],max:100,labels:{...chartDefaults.xaxis.labels,formatter:v=>`${v}%`}},plotOptions:{bar:{horizontal:true,borderRadius:6,barHeight:'42%'}},tooltip:{...chartDefaults.tooltip,y:{formatter:v=>`${n(v)}%`}}});
       const weights=data.weights, labels=weights.map(x=>dateLabel(x[0])), values=weights.map(x=>x[1]);
-      if (weights.length < 2) {
+      if (!weights.length) {
         $('weightChart').className='flex h-40 items-center justify-center rounded-xl bg-slate-50 text-sm text-slate-400';
         $('rateChart').className='flex h-40 items-center justify-center rounded-xl bg-slate-50 text-sm text-slate-400';
         $('weightChart').innerHTML='<div class="flex h-full items-center justify-center rounded-xl bg-slate-50 text-sm text-slate-400">Добавь первые измерения веса</div>';
         $('rateChart').innerHTML='<div class="flex h-full items-center justify-center rounded-xl bg-slate-50 text-sm text-slate-400">Скорость появится после накопления данных</div>';
         return;
       }
+      $('weightChart').className='h-80';
+      $('weightChart').innerHTML='';
+      $('rateChart').className='h-80';
+      $('rateChart').innerHTML='';
       draw('weightChart',{...chartDefaults,chart:{...chartDefaults.chart,type:'area',height:'100%'},colors:['#0891b2','#8b5cf6'],series:[{name:'Факт',data:values},{name:'Цель 82 кг',data:labels.map(()=>82)}],xaxis:{...chartDefaults.xaxis,categories:labels},fill:{type:'gradient',gradient:{opacityFrom:.28,opacityTo:.03}},yaxis:{...chartDefaults.yaxis,title:{text:'кг'}},stroke:{...chartDefaults.stroke,width:[3,2],dashArray:[0,7]}});
       const rates=values.map((v,i)=>i<7?null:(v-values[i-7])*7);
       if (rates.every(v=>v===null)) { $('rateChart').innerHTML='<div class="flex h-full items-center justify-center rounded-xl bg-slate-50 text-sm text-slate-400">Нужно минимум 8 измерений веса</div>'; return; }
