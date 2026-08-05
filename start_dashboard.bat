@@ -1,5 +1,6 @@
 @echo off
 setlocal
 cd /d "%~dp0"
-powershell -NoProfile -ExecutionPolicy Bypass -Command "$dashboardProcesses = Get-CimInstance Win32_Process | Where-Object { $_.Name -in @('python.exe', 'pythonw.exe') -and $_.CommandLine -match 'dashboard\.py' }; $dashboardProcesses | ForEach-Object { Stop-Process -Id $_.ProcessId -Force }"
+for /f "tokens=5" %%P in ('netstat -ano ^| findstr /R /C:":8765 .*LISTENING"') do taskkill /F /PID %%P >nul 2>&1
+timeout /t 1 /nobreak >nul
 py -3 dashboard.py
