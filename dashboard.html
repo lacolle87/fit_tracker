@@ -19,6 +19,8 @@
       <label class="text-sm text-slate-500">Дата<input id="day" type="date" class="ml-2 rounded-lg border border-slate-300 bg-white px-3 py-2 text-slate-900"></label>
     </header>
 
+    <div id="barcodeSearch" class="mb-6 rounded-2xl border border-slate-200 bg-white p-4 shadow-sm"><div class="flex flex-wrap items-center gap-3"><span class="font-semibold">Поиск по штрихкоду</span><input id="barcodeInput" inputmode="numeric" placeholder="EAN-8 / EAN-13" class="min-w-52 flex-1 rounded-lg border border-slate-300 px-3 py-2"><button id="barcodeButton" class="rounded-lg bg-cyan-600 px-4 py-2 font-medium text-white hover:bg-cyan-700">Найти</button><button id="barcodeScan" class="rounded-lg border border-cyan-600 px-4 py-2 font-medium text-cyan-700 hover:bg-cyan-50">Сканировать камерой</button><span id="barcodeStatus" class="text-sm text-slate-500"></span></div><video id="barcodeVideo" class="mt-3 hidden max-h-48 w-full rounded-lg bg-slate-900" autoplay muted playsinline></video><div id="barcodeResult" class="mt-3 hidden rounded-lg bg-slate-50 p-3 text-sm"></div></div>
+
     <section class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
       <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><p class="text-sm text-slate-500">Калории</p><p id="calories" class="mt-2 text-3xl font-semibold">—</p><p id="caloriesLimit" class="mt-1 text-sm text-slate-500">—</p><div class="hidden"><div id="caloriesBar" style="width:0%"></div></div></article>
       <article class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm"><p class="text-sm text-slate-500">Белок</p><p id="protein" class="mt-2 text-3xl font-semibold">—</p><p id="proteinTarget" class="mt-1 text-sm text-slate-500">—</p></article>
@@ -102,6 +104,26 @@
       if (rates.every(v=>v===null)) { $('rateChart').innerHTML='<div class="flex h-full items-center justify-center rounded-xl bg-slate-50 text-sm text-slate-400">Нужно минимум 8 измерений веса</div>'; return; }
       draw('rateChart',{...chartDefaults,chart:{...chartDefaults.chart,type:'area',height:'100%'},colors:['#10b981','#f59e0b'],series:[{name:'Факт',data:rates},{name:'Цель −1.25',data:labels.map(()=>-1.25)}],xaxis:{...chartDefaults.xaxis,categories:labels},fill:{type:'gradient',gradient:{opacityFrom:.28,opacityTo:.03}},yaxis:{...chartDefaults.yaxis,title:{text:'кг/неделю'}},stroke:{...chartDefaults.stroke,width:[3,2],dashArray:[0,7]}});
     }
+    async function lookupBarcode() {
+      const code=$('barcodeInput').value.trim();
+      if (!code) return;
+      $('barcodeStatus').textContent='Ищу продукт…'; $('barcodeResult').classList.add('hidden');
+      try {
+        const response=await fetch(`/api/barcode?code=${encodeURIComponent(code)}`); const result=await response.json();
+        if (!result.ok) throw new Error(result.error);
+        const p=result.product; $('barcodeResult').textContent=`${p.name}: ${n(p.kcal)} ккал · Б ${n(p.protein)} г · Ж ${n(p.fat)} г · У ${n(p.carbs)} г на 100 г`; $('barcodeResult').classList.remove('hidden'); $('barcodeStatus').textContent='Сохранено в базе';
+      } catch (error) { $('barcodeStatus').textContent=error.message; }
+    }
+    async function scanBarcode() {
+      if (!('BarcodeDetector' in window)) { $('barcodeStatus').textContent='В этом браузере нет поддержки сканирования камерой'; return; }
+      const video=$('barcodeVideo'); let stream;
+      try {
+        stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}}); video.srcObject=stream; video.classList.remove('hidden');
+        const detector=new BarcodeDetector({formats:['ean_8','ean_13','upc_a','upc_e']});
+        const scan=async()=>{ if (video.classList.contains('hidden')) return; const codes=await detector.detect(video); if (codes.length) { $('barcodeInput').value=codes[0].rawValue; stream.getTracks().forEach(track=>track.stop()); video.classList.add('hidden'); lookupBarcode(); return; } requestAnimationFrame(scan); };
+        requestAnimationFrame(scan);
+      } catch (error) { if (stream) stream.getTracks().forEach(track=>track.stop()); video.classList.add('hidden'); $('barcodeStatus').textContent='Не удалось включить камеру'; }
+    }
     function mealGroup(value) {
       const hour = new Date(value).getHours();
       if (hour >= 5 && hour < 11) return 'Завтрак';
@@ -136,6 +158,7 @@
     }
     async function load() { const day=$('day').value; const response=await fetch(`/api/dashboard?date=${day}`); const data=await response.json(); render(data); renderExtras(data); renderMacroDonut(data); const donut=$('macroRatio').firstElementChild; donut.className='relative h-[104px] w-[104px] shrink-0 rounded-full'; donut.firstElementChild.className='absolute inset-3 flex flex-col items-center justify-center rounded-full bg-white text-center'; const activity=data.activity.find(x=>x[0]===data.date)||[data.date,0,0]; $('summarySteps').textContent=Number(activity[1]).toLocaleString('ru-RU'); $('summaryWorkouts').textContent=data.workouts.length; }
     $('day').value=new Date().toISOString().slice(0,10); $('day').addEventListener('change',load); load();
+    $('barcodeButton').addEventListener('click',lookupBarcode); $('barcodeScan').addEventListener('click',scanBarcode); $('barcodeInput').addEventListener('keydown',event=>{if(event.key==='Enter') lookupBarcode();});
   </script>
 </body>
 </html>

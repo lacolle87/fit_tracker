@@ -8,6 +8,7 @@ from pathlib import Path
 from urllib.parse import parse_qs, urlparse
 
 import db
+import barcode
 
 ROOT = Path(__file__).parent
 
@@ -77,6 +78,35 @@ class Handler(BaseHTTPRequestHandler):
             day = parse_qs(parsed.query).get("date", [date.today().isoformat()])[0]
             body = json.dumps(payload(date.fromisoformat(day)), ensure_ascii=False).encode()
             content_type = "application/json; charset=utf-8"
+        elif parsed.path == "/api/barcode":
+            code = parse_qs(parsed.query).get("code", [""])[0]
+            try:
+                normalized_code = barcode.normalize(code)
+                connection = db.connect()
+                try:
+                    existing = connection.execute(
+                        "SELECT id, name, kcal_100, protein_100, fat_100, carbs_100 FROM foods WHERE barcode=?",
+                        [normalized_code],
+                    ).fetchone()
+                    if existing:
+                        product = dict(zip(("id", "name", "kcal", "protein", "fat", "carbs"), existing))
+                    else:
+                        product = barcode.fetch(normalized_code)
+                        food_id = connection.execute("SELECT COALESCE(MAX(id),0)+1 FROM foods").fetchone()[0]
+                        connection.execute(
+                            "INSERT INTO foods (id,name,kcal_100,protein_100,fat_100,carbs_100,barcode) "
+                            "VALUES (?,?,?,?,?,?,?)",
+                            [food_id, product["name"], product["kcal"], product["protein"],
+                             product["fat"], product["carbs"], product["barcode"]],
+                        )
+                        product["id"] = food_id
+                finally:
+                    connection.close()
+                body = json.dumps({"ok": True, "product": product}, ensure_ascii=False).encode()
+                content_type = "application/json; charset=utf-8"
+            except ValueError as error:
+                body = json.dumps({"ok": False, "error": str(error)}, ensure_ascii=False).encode()
+                content_type = "application/json; charset=utf-8"
         else:
             self.send_error(404)
             return

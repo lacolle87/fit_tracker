@@ -10,6 +10,7 @@ SEED_PATH = Path(__file__).with_name("seed.sql")
 def connect():
     conn = duckdb.connect(str(DB_PATH))
     conn.execute(SCHEMA_PATH.read_text(encoding="utf-8"))
+    conn.execute("ALTER TABLE foods ADD COLUMN IF NOT EXISTS barcode VARCHAR")
     conn.execute("ALTER TABLE nutrition_targets ADD COLUMN IF NOT EXISTS valid_to DATE")
     conn.execute("ALTER TABLE body_measurements ADD COLUMN IF NOT EXISTS muscle_pct DOUBLE")
     measurement_columns = {
@@ -61,8 +62,12 @@ def find(c, table, name):
     raise ValueError("Несколько совпадений: " + ", ".join(x[1] for x in rows))
 
 
-def add_food(c, a): c.execute("INSERT INTO foods VALUES ((SELECT COALESCE(MAX(id),0)+1 FROM foods),?,?,?,?,?)",
-                              [a.name, a.kcal, a.protein, a.fat, a.carbs])
+def add_food(c, a):
+    c.execute(
+        "INSERT INTO foods (id,name,kcal_100,protein_100,fat_100,carbs_100) "
+        "VALUES ((SELECT COALESCE(MAX(id),0)+1 FROM foods),?,?,?,?,?)",
+        [a.name, a.kcal, a.protein, a.fat, a.carbs],
+    )
 
 
 def add_dish(c, a): c.execute("INSERT INTO dishes VALUES ((SELECT COALESCE(MAX(id),0)+1 FROM dishes),?,?,?,?,?,?,?)",
