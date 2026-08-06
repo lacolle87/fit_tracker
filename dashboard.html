@@ -137,11 +137,12 @@
     function renderMeals(meals, calorieTarget) {
       const groups = ['Завтрак', 'Обед', 'Ужин', 'Перекус', 'Не указано'].map(name => [name, []]);
       meals.forEach(meal => groups.find(group => group[0] === mealGroup(meal))[1].push(meal));
-      return groups.map(([name, entries]) => {
+      const nonEmptyGroups = groups.filter(([, entries]) => entries.length);
+      if (!nonEmptyGroups.length) return '<tr><td colspan="6" class="px-2 py-4 text-sm text-slate-400">Пока нет записей за выбранную дату</td></tr>';
+      return nonEmptyGroups.map(([name, entries]) => {
         const calories = entries.reduce((total, entry) => total + Number(entry.calories || 0), 0);
         const rows = entries.map(meal => `<tr class="border-b border-slate-100"><td class="px-2 py-3 text-slate-400">${new Date(meal.eaten_at).toLocaleTimeString('ru-RU',{hour:'2-digit',minute:'2-digit'})}</td><td class="break-words px-2 py-3 font-medium">${meal.name}</td><td class="px-2 py-3 text-slate-400">${n(meal.grams)} г</td><td class="px-2 py-3">${n(meal.calories)}</td><td class="px-2 py-3 text-slate-400">${n(meal.protein)} / ${n(meal.fat)} / ${n(meal.carbs)}</td><td class="px-2 py-3 text-right"><button type="button" data-delete-meal="${meal.id}" class="text-xs text-rose-600 hover:text-rose-800">Удалить</button></td></tr>`).join('');
-        const empty = '<tr><td colspan="6" class="border-b border-slate-100 px-2 py-3 text-sm text-slate-400">Пока нет записей</td></tr>';
-        return `<tr><td colspan="6" class="border-b border-slate-200 bg-slate-50 px-2 py-2 text-xs font-semibold uppercase tracking-wide text-slate-500"><span>${name}</span><span class="ml-2 font-normal normal-case text-slate-400">${n(calories)} ккал · ${pct(calories, calorieTarget)}% дневной цели</span></td></tr>${rows || empty}`;
+        return `<tr><td colspan="6" class="border-b border-slate-200 bg-slate-50 px-2 py-2 text-xs font-semibold uppercase tracking-wide text-slate-500"><span>${name}</span><span class="ml-2 font-normal normal-case text-slate-400">${n(calories)} ккал · ${pct(calories, calorieTarget)}% дневной цели</span></td></tr>${rows}`;
       }).join('');
     }
     function renderExtras(data) { const t=data.targets, values=[t.protein*4,t.fat*9,t.carbs*4], total=values.reduce((a,b)=>a+b,0); $('macroRatio').textContent=`Белок ${pct(values[0],total)}% · Жиры ${pct(values[1],total)}% · Углеводы ${pct(values[2],total)}%`; const m=data.body_measurements.at(-1); if (!m) return; $('measurementDate').textContent=`Последний замер: ${dateLabel(m[0])}`; $('measurementWeight').textContent=m[1]===null?'—':`${n(m[1],1)} кг`; $('measurementFat').textContent=m[2]===null?'—':`${n(m[2],1)}%`; $('measurementMuscle').textContent=m[3]===null?'—':`${n(m[3],1)}%`; }
