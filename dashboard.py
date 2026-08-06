@@ -56,6 +56,7 @@ def payload(day, named_meals=False):
             "totals": dict(zip(("calories", "protein", "fat", "carbs"), totals)),
             "meals": meal_rows(connection, day) if named_meals else rows(connection, "meals", [day]),
             "activity": rows(connection, "activity", [start, end]),
+            "daily": rows(connection, "daily_metrics", [start, end, start, end, start, end]),
             "workouts": rows(connection, "workouts", [start, end]),
             "weights": rows(connection, "weights", [start, end]),
             "body_measurements": rows(connection, "body_measurements", [start, end]),

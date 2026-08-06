@@ -22,6 +22,10 @@ class DashboardContractTests(unittest.TestCase):
         connection = db.connect()
         try:
             connection.execute(
+                "INSERT INTO nutrition_targets "
+                "VALUES (999,1800,120,65,180,DATE '2026-08-05',NULL,'test')"
+            )
+            connection.execute(
                 "INSERT INTO foods (id,name,kcal_100,protein_100,fat_100,carbs_100) "
                 "VALUES (999,'Test food',100,10,5,20)"
             )
