@@ -156,6 +156,7 @@ class DashboardContractTests(unittest.TestCase):
         self.assertIn("const weightPadding=Math.max(.8,weightRange*.25);", html)
         self.assertIn("forceNiceScale:false", html)
         self.assertIn("type:'area',height:288", html)
+        self.assertIn("categories:labels,labels:{show:false}", html)
         self.assertNotIn("$('weightChart').className='h-72 overflow-hidden';", html)
 
 
