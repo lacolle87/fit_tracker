@@ -150,6 +150,14 @@ class DashboardContractTests(unittest.TestCase):
             {"raw_grams": 100, "calories": 100, "protein": 10, "fat": 5, "carbs": 20},
         )
 
+    def test_weight_chart_reserves_space_around_all_points(self):
+        html = (dashboard.ROOT / "dashboard.html").read_text(encoding="utf-8")
+
+        self.assertIn("const weightPadding=Math.max(.8,weightRange*.25);", html)
+        self.assertIn("forceNiceScale:false", html)
+        self.assertIn("type:'area',height:288", html)
+        self.assertNotIn("$('weightChart').className='h-72 overflow-hidden';", html)
+
 
 if __name__ == "__main__":
     unittest.main()
