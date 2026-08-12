@@ -43,23 +43,34 @@ def meal_rows(connection, day):
     return [dict(zip(columns, row)) for row in rows(connection, "meals", [day])]
 
 
-def payload(day, named_meals=False):
+def payload(day, named_meals=False, average_days=7):
     connection = db.connect()
     try:
         target = db.targets(connection, day)
         totals = connection.execute(QUERIES["day_totals"], [day]).fetchone()
         start = day - timedelta(days=29)
         end = day
+        average_start = day - timedelta(days=average_days - 1)
+        weight_start = day - timedelta(days=89)
         return {
             "date": day.isoformat(),
             "targets": target,
             "totals": dict(zip(("calories", "protein", "fat", "carbs"), totals)),
+            "nutrition_average": dict(zip(
+                ("calories", "protein", "fat", "carbs"),
+                connection.execute(
+                    QUERIES["nutrition_average"],
+                    [average_start, day, average_start, day],
+                ).fetchone(),
+            )),
+            "nutrition_average_days": average_days,
             "meals": meal_rows(connection, day) if named_meals else rows(connection, "meals", [day]),
             "activity": rows(connection, "activity", [start, end]),
             "daily": rows(connection, "daily_metrics", [start, end, start, end, start, end]),
             "workouts": rows(connection, "workouts", [start, end]),
             "weights": rows(connection, "weights", [start, end]),
             "body_measurements": rows(connection, "body_measurements", [start, end]),
+            "weekly_weight_trend": rows(connection, "weekly_weight_trend", [weight_start, end]),
         }
     finally:
         connection.close()
@@ -108,8 +119,11 @@ class Handler(BaseHTTPRequestHandler):
         elif parsed.path == "/api/dashboard":
             day = parse_qs(parsed.query).get("date", [date.today().isoformat()])[0]
             named_meals = parse_qs(parsed.query).get("format", [""])[0] == "objects"
+            average_days = int(parse_qs(parsed.query).get("average_days", ["7"])[0])
+            if average_days not in {7, 30}:
+                raise ValueError("average_days must be 7 or 30")
             body = json.dumps(
-                payload(date.fromisoformat(day), named_meals), ensure_ascii=False
+                payload(date.fromisoformat(day), named_meals, average_days), ensure_ascii=False
             ).encode()
             content_type = "application/json; charset=utf-8"
         elif parsed.path == "/api/barcode":

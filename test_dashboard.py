@@ -22,6 +22,10 @@ class DashboardContractTests(unittest.TestCase):
         connection = db.connect()
         try:
             connection.execute(
+                "INSERT INTO meals (id,eaten_at,food_id,grams,note,meal_type) "
+                "VALUES (2000,TIMESTAMP '2026-08-12 08:00:00',999,100,NULL,'breakfast')"
+            )
+            connection.execute(
                 "INSERT INTO nutrition_targets "
                 "VALUES (999,1800,120,65,180,DATE '2026-08-05',NULL,'test')"
             )
@@ -158,6 +162,38 @@ class DashboardContractTests(unittest.TestCase):
         self.assertIn("type:'area',height:288", html)
         self.assertIn("categories:labels,labels:{show:false}", html)
         self.assertNotIn("$('weightChart').className='h-72 overflow-hidden';", html)
+
+    def test_dashboard_exposes_calendar_seven_day_averages_and_weekly_weight_trend(self):
+        connection = db.connect()
+        try:
+            connection.execute(
+                "INSERT INTO body_measurements VALUES "
+                "(DATE '2026-08-05',100,NULL,NULL,NULL),"
+                "(DATE '2026-08-08',99,NULL,NULL,NULL),"
+                "(DATE '2026-08-12',98,NULL,NULL,NULL)"
+            )
+        finally:
+            connection.close()
+
+        data = self.dashboard_response("date=2026-08-12&format=objects")
+
+        self.assertEqual(data["nutrition_average"], {
+            "calories": 100,
+            "protein": 10,
+            "fat": 5,
+            "carbs": 20,
+        })
+        self.assertEqual(data["nutrition_average_days"], 7)
+        self.assertEqual(len(data["weekly_weight_trend"]), 2)
+        self.assertEqual(data["weekly_weight_trend"][0][3], None)
+        self.assertAlmostEqual(data["weekly_weight_trend"][1][3], -1.5)
+        self.assertIn("formatter:v=>n(v,1)", (dashboard.ROOT / "dashboard.html").read_text(encoding="utf-8"))
+
+    def test_dashboard_supports_thirty_day_nutrition_average(self):
+        data = self.dashboard_response("date=2026-08-12&average_days=30&format=objects")
+
+        self.assertEqual(data["nutrition_average_days"], 30)
+        self.assertAlmostEqual(data["nutrition_average"]["calories"], 150)
 
 
 if __name__ == "__main__":
