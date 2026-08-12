@@ -194,9 +194,12 @@ class DashboardContractTests(unittest.TestCase):
         self.assertIn("if (actualRates.length===1)", html)
         self.assertIn("Факт за последнюю неделю", html)
         self.assertIn("text-[30px]", html)
-        self.assertIn('id="nutritionAverage"', html)
-        self.assertIn("Среднее за ${averageDays} дней", html)
-        self.assertNotIn('id="averageCalories"', html)
+        self.assertIn('id="averageCalories"', html)
+        self.assertIn('id="averageProtein"', html)
+        self.assertIn('id="averageFat"', html)
+        self.assertIn('id="averageCarbs"', html)
+        self.assertIn("averageLabel=`Ср. ${averageDays} д.:`", html)
+        self.assertNotIn('id="nutritionAverage"', html)
 
     def test_dashboard_supports_thirty_day_nutrition_average(self):
         data = self.dashboard_response("date=2026-08-12&average_days=30&format=objects")
