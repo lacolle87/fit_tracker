@@ -198,7 +198,8 @@ class DashboardContractTests(unittest.TestCase):
         self.assertIn('id="averageProtein"', html)
         self.assertIn('id="averageFat"', html)
         self.assertIn('id="averageCarbs"', html)
-        self.assertIn("$('averageCalories').textContent=`${n(a.calories)} ккал`", html)
+        self.assertIn("$('averageCalories').textContent=`Ø ${n(a.calories)} ккал`", html)
+        self.assertIn("$('averageProtein').textContent=`Ø ${n(a.protein)} г`", html)
         self.assertNotIn("averageLabel=`Ср. ${averageDays} д.:`", html)
         self.assertNotIn('id="nutritionAverage"', html)
 
