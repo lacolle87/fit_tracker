@@ -191,6 +191,9 @@ class DashboardContractTests(unittest.TestCase):
         self.assertIn("formatter:v=>n(v,1)", html)
         self.assertIn("const ratePoints=rates.filter(v=>v!==null).concat(-1.25)", html)
         self.assertIn("min:rateMin,max:rateMax,forceNiceScale:false", html)
+        self.assertIn("if (actualRates.length===1)", html)
+        self.assertIn("Факт за последнюю неделю", html)
+        self.assertIn("text-[30px]", html)
 
     def test_dashboard_supports_thirty_day_nutrition_average(self):
         data = self.dashboard_response("date=2026-08-12&average_days=30&format=objects")
