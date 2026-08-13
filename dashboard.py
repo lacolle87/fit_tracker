@@ -50,7 +50,8 @@ def payload(day, named_meals=False, average_days=7):
         totals = connection.execute(QUERIES["day_totals"], [day]).fetchone()
         start = day - timedelta(days=29)
         end = day
-        average_start = day - timedelta(days=average_days - 1)
+        average_start = day - timedelta(days=average_days)
+        average_end = day - timedelta(days=1)
         weight_start = day - timedelta(days=89)
         return {
             "date": day.isoformat(),
@@ -60,7 +61,7 @@ def payload(day, named_meals=False, average_days=7):
                 ("calories", "protein", "fat", "carbs"),
                 connection.execute(
                     QUERIES["nutrition_average"],
-                    [average_start, day, average_start, day],
+                    [average_start, average_end, average_start, average_end],
                 ).fetchone(),
             )),
             "nutrition_average_days": average_days,

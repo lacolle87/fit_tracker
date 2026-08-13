@@ -178,10 +178,10 @@ class DashboardContractTests(unittest.TestCase):
         data = self.dashboard_response("date=2026-08-12&format=objects")
 
         self.assertEqual(data["nutrition_average"], {
-            "calories": 100,
-            "protein": 10,
-            "fat": 5,
-            "carbs": 20,
+            "calories": 200,
+            "protein": 20,
+            "fat": 10,
+            "carbs": 40,
         })
         self.assertEqual(data["nutrition_average_days"], 7)
         self.assertEqual(len(data["weekly_weight_trend"]), 2)
@@ -208,7 +208,7 @@ class DashboardContractTests(unittest.TestCase):
         data = self.dashboard_response("date=2026-08-12&average_days=30&format=objects")
 
         self.assertEqual(data["nutrition_average_days"], 30)
-        self.assertAlmostEqual(data["nutrition_average"]["calories"], 150)
+        self.assertAlmostEqual(data["nutrition_average"]["calories"], 200)
 
 
 if __name__ == "__main__":
