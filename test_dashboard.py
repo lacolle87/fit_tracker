@@ -162,6 +162,8 @@ class DashboardContractTests(unittest.TestCase):
         self.assertIn("type:'area',height:288", html)
         self.assertIn("categories:labels,labels:{show:false}", html)
         self.assertNotIn("$('weightChart').className='h-72 overflow-hidden';", html)
+        self.assertIn('id="rateChart" class="h-72 overflow-hidden"', html)
+        self.assertIn("type:'area',height:270", html)
 
     def test_dashboard_exposes_calendar_seven_day_averages_and_weekly_weight_trend(self):
         connection = db.connect()
