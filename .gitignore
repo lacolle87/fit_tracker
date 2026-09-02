@@ -24,3 +24,10 @@ env/
 .idea/
 .DS_Store
 Thumbs.db
+
+# Private assistant notes (personal data, never publish)
+fit-tracker-skill-reference.md
+
+# Temporary SQL scratch files
+_*.sql
+meals_recent.sql
