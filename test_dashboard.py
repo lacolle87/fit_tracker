@@ -191,7 +191,7 @@ class DashboardContractTests(unittest.TestCase):
         self.assertAlmostEqual(data["weekly_weight_trend"][1][3], -1.5)
         html = (dashboard.ROOT / "dashboard.html").read_text(encoding="utf-8")
         self.assertIn("formatter:v=>n(v,1)", html)
-        self.assertIn("const ratePoints=rates.filter(v=>v!==null).concat(-1.25)", html)
+        self.assertIn("const ratePoints=rates.filter(v=>v!==null).concat(-1.0)", html)
         self.assertIn("min:rateMin,max:rateMax,forceNiceScale:false", html)
         self.assertIn("if (actualRates.length===1)", html)
         self.assertIn("Факт за последнюю неделю", html)
