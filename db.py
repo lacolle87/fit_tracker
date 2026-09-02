@@ -3,8 +3,8 @@ from pathlib import Path
 import duckdb
 
 DB_PATH = Path(__file__).with_name("fit.duckdb")
-SCHEMA_PATH = Path(__file__).with_name("schema.sql")
-SEED_PATH = Path(__file__).with_name("seed.sql")
+SCHEMA_PATH = Path(__file__).parent / "db" / "schema.sql"
+SEED_PATH = Path(__file__).parent / "db" / "seed.sql"
 
 
 def display_name(value):

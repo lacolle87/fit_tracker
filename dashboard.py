@@ -14,7 +14,7 @@ ROOT = Path(__file__).parent
 
 
 def load_queries():
-    text = (ROOT / "dashboard.sql").read_text(encoding="utf-8")
+    text = (ROOT / "web" / "dashboard.sql").read_text(encoding="utf-8")
     return {name: body.strip() for name, body in re.findall(
         r"-- name: (\w+)\s*\n(.*?)(?=\n-- name:|\Z)", text, re.S
     )}
@@ -112,10 +112,10 @@ class Handler(BaseHTTPRequestHandler):
     def do_GET(self):
         parsed = urlparse(self.path)
         if parsed.path == "/":
-            body = (ROOT / "dashboard.html").read_bytes()
+            body = (ROOT / "web" / "dashboard.html").read_bytes()
             content_type = "text/html; charset=utf-8"
         elif parsed.path in {"/favicon.ico", "/fit_tracker.ico"}:
-            body = (ROOT / "fit_tracker_transparent_v2.ico").read_bytes()
+            body = (ROOT / "assets" / "fit_tracker_transparent_v2.ico").read_bytes()
             content_type = "image/x-icon"
         elif parsed.path == "/api/dashboard":
             day = parse_qs(parsed.query).get("date", [date.today().isoformat()])[0]

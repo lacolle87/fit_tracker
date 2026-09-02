@@ -26,7 +26,7 @@ env/
 Thumbs.db
 
 # Private assistant notes (personal data, never publish)
-fit-tracker-skill-reference.md
+docs/fit-tracker-skill-reference.md
 
 # Temporary SQL scratch files
 _*.sql

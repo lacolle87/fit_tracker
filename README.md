@@ -69,14 +69,14 @@ python dashboard.py
 
 ## Хранение данных
 
-Всё лежит в одном файле `fit.duckdb` (DuckDB, включён в `requirements.txt`). Схема — в `schema.sql`, пример стартовых данных — в `seed.sql`. База в git не попадает (см. `.gitignore`) — данные остаются только у тебя.
+Всё лежит в одном файле `fit.duckdb` (DuckDB, включён в `requirements.txt`). Схема — в `db/schema.sql`, пример стартовых данных — в `db/seed.sql`. База в git не попадает (см. `.gitignore`) — данные остаются только у тебя.
 
 ## Разработка
 
 ```bash
 python -m flake8 .
 python -m py_compile fit_tracker.py db.py nutrition.py
-python -m unittest test_dashboard.py
+python -m unittest discover -s tests
 ```
 
 Перед коммитом прогоняй flake8 и py_compile. Git используется локально; сетевые операции — только по явному решению владельца репозитория.

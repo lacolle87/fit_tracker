@@ -71,7 +71,7 @@ class DashboardContractTests(unittest.TestCase):
 
     def test_named_api_and_html_use_the_same_meal_contract(self):
         data = self.dashboard_response("date=2026-08-05&format=objects")
-        html = (dashboard.ROOT / "dashboard.html").read_text(encoding="utf-8")
+        html = (dashboard.ROOT / "web" / "dashboard.html").read_text(encoding="utf-8")
 
         self.assertEqual(
             [meal["meal_type"] for meal in data["meals"]],
@@ -155,7 +155,7 @@ class DashboardContractTests(unittest.TestCase):
         )
 
     def test_weight_chart_reserves_space_around_all_points(self):
-        html = (dashboard.ROOT / "dashboard.html").read_text(encoding="utf-8")
+        html = (dashboard.ROOT / "web" / "dashboard.html").read_text(encoding="utf-8")
 
         self.assertIn("const weightPadding=Math.max(.8,weightRange*.25);", html)
         self.assertIn("forceNiceScale:false", html)
@@ -189,7 +189,7 @@ class DashboardContractTests(unittest.TestCase):
         self.assertEqual(len(data["weekly_weight_trend"]), 2)
         self.assertEqual(data["weekly_weight_trend"][0][3], None)
         self.assertAlmostEqual(data["weekly_weight_trend"][1][3], -1.5)
-        html = (dashboard.ROOT / "dashboard.html").read_text(encoding="utf-8")
+        html = (dashboard.ROOT / "web" / "dashboard.html").read_text(encoding="utf-8")
         self.assertIn("formatter:v=>n(v,1)", html)
         self.assertIn("const ratePoints=rates.filter(v=>v!==null).concat(-1.0)", html)
         self.assertIn("min:rateMin,max:rateMax,forceNiceScale:false", html)
